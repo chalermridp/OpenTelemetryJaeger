@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Configuration;
 public class TracerConfig {
     @Bean("tracer")
     public Tracer tracer(@Qualifier("openTelemetry") OpenTelemetry openTelemetry) {
-        return openTelemetry.getTracer("com.chalermrid.poc.OpenTelemetryJaeger.ServiceA");
+        return openTelemetry.getTracer("com.chalermrid.poc.OpenTelemetryJaeger.ServiceB");
     }
 
     @Bean("textMapPropagator")

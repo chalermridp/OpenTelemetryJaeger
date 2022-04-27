@@ -45,7 +45,8 @@ public class TracingInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws URISyntaxException {
         log.info("preHandle");
         Context context = textMapPropagator.extract(Context.current(), request, getter);
 
@@ -58,19 +59,16 @@ public class TracingInterceptor implements HandlerInterceptor {
         }
 
         span = spanBuilder.startSpan();
+        Scope scope = span.makeCurrent();
+        URI uri = new URI(request.getRequestURI());
+
+        span.setAttribute("component", "http");
+        span.setAttribute("http.method", request.getMethod());
+
+        span.setAttribute("http.scheme", "http");
+        span.setAttribute("http.host", uri.getHost());
+        span.setAttribute("http.target", uri.getPath());
         log.info(span.toString());
-        try (Scope scope = span.makeCurrent()) {
-            URI uri = new URI(request.getRequestURI());
-
-            span.setAttribute("component", "http");
-            span.setAttribute("http.method", request.getMethod());
-
-            span.setAttribute("http.scheme", "http");
-            span.setAttribute("http.host", uri.getHost());
-            span.setAttribute("http.target", uri.getPath());
-        } catch (URISyntaxException e) {
-            log.error("preHandle", e);
-        }
         return true;
     }
 
