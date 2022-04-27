@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(path = "/v1/internal")
-public class InternalController {
+@RequestMapping(path = "/v1/hello")
+public class HelloController {
     @Autowired
     private HelloService helloService;
 
