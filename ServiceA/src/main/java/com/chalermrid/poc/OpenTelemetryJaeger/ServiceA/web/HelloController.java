@@ -14,9 +14,9 @@ public class HelloController {
     @Autowired
     private HelloService helloService;
 
-    @GetMapping(path = "/hello")
-    public ResponseEntity<String> sayHello() {
-        String response = helloService.sayHello();
+    @GetMapping
+    public ResponseEntity<String> getHello() {
+        String response = helloService.getHello();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

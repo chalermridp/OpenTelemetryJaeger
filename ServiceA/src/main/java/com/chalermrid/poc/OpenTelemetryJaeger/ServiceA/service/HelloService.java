@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 @Service
 public class HelloService {
-    public String sayHello() {
+    public String getHello() {
         return "hello: " + LocalDateTime.now();
     }
 }
