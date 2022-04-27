@@ -3,7 +3,6 @@ package com.chalermrid.poc.OpenTelemetryJaeger.ServiceA.web.interceptor;
 import io.opentelemetry.api.trace.*;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
-import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
 import lombok.extern.slf4j.Slf4j;
@@ -25,28 +24,12 @@ public class RestTemplateInterceptor implements ClientHttpRequestInterceptor {
     }
 
     // Tell OpenTelemetry to inject the context in the HTTP headers
-    TextMapSetter<HttpRequest> setter =
+    private final TextMapSetter<HttpRequest> setter =
             new TextMapSetter<HttpRequest>() {
                 @Override
                 public void set(HttpRequest carrier, String key, String value) {
                     // Insert the context as Header
                     carrier.getHeaders().set(key, value);
-                }
-            };
-
-    private final TextMapGetter<HttpRequest> getter =
-            new TextMapGetter<>() {
-                @Override
-                public Iterable<String> keys(HttpRequest carrier) {
-                    return carrier.getHeaders().keySet();
-                }
-
-                @Override
-                public String get(HttpRequest carrier, String key) {
-                    if (carrier.getHeaders().get(key) != null) {
-                        return carrier.getHeaders().get(key).get(0);
-                    }
-                    return "";
                 }
             };
 
