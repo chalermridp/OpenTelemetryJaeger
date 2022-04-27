@@ -45,10 +45,13 @@ public class TracerConfig {
                 .setSampler(Sampler.traceIdRatioBased(0.5))
                 .build();
 
-        return OpenTelemetrySdk.builder()
+        OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
                 .setTracerProvider(sdkTracerProvider)
                 .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
                 .buildAndRegisterGlobal();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(sdkTracerProvider::close));
+        return openTelemetrySdk;
     }
 
     private String getEnvironment() {
