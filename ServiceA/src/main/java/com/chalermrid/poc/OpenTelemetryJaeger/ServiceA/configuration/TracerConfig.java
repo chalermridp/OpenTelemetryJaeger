@@ -1,23 +1,35 @@
-package com.chalermrid.poc.OpenTelemetryJaeger.ServiceA.web;
+package com.chalermrid.poc.OpenTelemetryJaeger.ServiceA.configuration;
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
+import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class TracerConfig {
     @Bean("tracer")
-    public Tracer tracer() {
+    public Tracer tracer(@Qualifier("openTelemetry") OpenTelemetry openTelemetry) {
+        return openTelemetry.getTracer("com.chalermrid.poc.OpenTelemetryJaeger.ServiceA");
+    }
+
+    @Bean("textMapPropagator")
+    public TextMapPropagator textMapPropagator(@Qualifier("openTelemetry") OpenTelemetry openTelemetry) {
+        return openTelemetry.getPropagators().getTextMapPropagator();
+    }
+
+    @Bean("openTelemetry")
+    public OpenTelemetry openTelemetry() {
         JaegerGrpcSpanExporter jaegerExporter =
                 JaegerGrpcSpanExporter.builder()
                         .build();
@@ -33,14 +45,13 @@ public class TracerConfig {
                 .setSampler(Sampler.traceIdRatioBased(0.5))
                 .build();
 
-        OpenTelemetry openTelemetry = OpenTelemetrySdk.builder()
+        OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
                 .setTracerProvider(sdkTracerProvider)
                 .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
                 .buildAndRegisterGlobal();
 
-        Tracer tracer =
-                openTelemetry.getTracer("com.chalermrid.poc.OpenTelemetryJaeger.ServiceA", "1.0.0");
-        return tracer;
+        Runtime.getRuntime().addShutdownHook(new Thread(sdkTracerProvider::close));
+        return openTelemetrySdk;
     }
 
     private String getEnvironment() {
