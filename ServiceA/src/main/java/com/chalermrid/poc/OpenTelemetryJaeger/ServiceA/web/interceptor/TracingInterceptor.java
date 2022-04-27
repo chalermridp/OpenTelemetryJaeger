@@ -1,9 +1,6 @@
 package com.chalermrid.poc.OpenTelemetryJaeger.ServiceA.web.interceptor;
 
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.api.trace.StatusCode;
-import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.trace.*;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapGetter;
@@ -18,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.Objects;
 
 @Component
 @Slf4j
@@ -51,14 +49,16 @@ public class TracingInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         log.info("preHandle");
         Context context = textMapPropagator.extract(Context.current(), request, getter);
-        log.info(context.toString());
 
         String spanName = request.getMethod() + " " + request.getRequestURI();
-        span = tracer.spanBuilder(spanName)
-                .setParent(context)
-                .setSpanKind(SpanKind.SERVER)
-                .startSpan();
+        SpanBuilder spanBuilder = tracer.spanBuilder(spanName)
+                .setSpanKind(SpanKind.SERVER);
 
+        if (!Objects.equals(context.toString(), "{}")) {
+            spanBuilder.setParent(context);
+        }
+
+        span = spanBuilder.startSpan();
         try (Scope scope = span.makeCurrent()) {
             URI uri = new URI(request.getRequestURI());
 
@@ -68,6 +68,7 @@ public class TracingInterceptor implements HandlerInterceptor {
             span.setAttribute("http.scheme", "http");
             span.setAttribute("http.host", uri.getHost());
             span.setAttribute("http.target", uri.getPath());
+            log.info(span.toString());
         } catch (URISyntaxException e) {
             log.error("preHandle", e);
         }

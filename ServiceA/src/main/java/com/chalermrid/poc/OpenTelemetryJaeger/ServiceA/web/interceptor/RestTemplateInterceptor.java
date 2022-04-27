@@ -1,9 +1,6 @@
 package com.chalermrid.poc.OpenTelemetryJaeger.ServiceA.web.interceptor;
 
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.api.trace.StatusCode;
-import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.trace.*;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapGetter;
@@ -56,18 +53,21 @@ public class RestTemplateInterceptor implements ClientHttpRequestInterceptor {
     @Override
     public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
             throws IOException {
-        ClientHttpResponse response;
+        log.info("intercept");
 
         String spanName = request.getMethod() + " " + request.getURI().getPath();
-        Span span = tracer.spanBuilder(spanName)
-                .setSpanKind(SpanKind.CLIENT)
-                .startSpan();
+        SpanBuilder spanBuilder = tracer.spanBuilder(spanName)
+                .setSpanKind(SpanKind.CLIENT);
+
+        ClientHttpResponse response;
+        Span span = spanBuilder.startSpan();
         try (Scope scope = span.makeCurrent()) {
             span.setAttribute("http.method", String.valueOf(request.getMethod()));
             span.setAttribute("component", "http");
             span.setAttribute("http.url", String.valueOf(request.getURI()));
             textMapPropagator.inject(Context.current(), request, setter);
 
+            log.info(span.toString());
             response = execution.execute(request, body);
         } catch (Throwable throwable) {
             span.setStatus(StatusCode.ERROR, "Something bad happened!");
