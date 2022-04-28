@@ -1,5 +1,6 @@
 package com.chalermrid.poc.OpenTelemetryJaeger.ServiceA.configuration;
 
+import com.chalermrid.poc.OpenTelemetryJaeger.ServiceA.web.interceptor.MethodTracingInterceptor;
 import com.chalermrid.poc.OpenTelemetryJaeger.ServiceA.web.interceptor.TracingInterceptor;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.propagation.TextMapPropagator;
@@ -22,5 +23,6 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new TracingInterceptor(tracer, textMapPropagator));
+        registry.addInterceptor(new MethodTracingInterceptor(tracer, textMapPropagator));
     }
 }

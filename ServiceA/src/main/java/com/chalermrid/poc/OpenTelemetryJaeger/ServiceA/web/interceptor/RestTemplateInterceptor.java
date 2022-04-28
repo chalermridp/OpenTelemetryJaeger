@@ -38,7 +38,7 @@ public class RestTemplateInterceptor implements ClientHttpRequestInterceptor {
             throws IOException {
         log.info("intercept");
 
-        String spanName = request.getMethod() + " " + request.getURI().getPath();
+        String spanName = request.getMethod() + " " + request.getURI();
         SpanBuilder spanBuilder = tracer.spanBuilder(spanName)
                 .setSpanKind(SpanKind.CLIENT);
 
